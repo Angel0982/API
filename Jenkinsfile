@@ -12,19 +12,22 @@ pipeline {
             }
             steps {
                 script {
-                    // Instalar virtualenv (no necesitas instalarlo en el entorno global)
+                    // Crear un directorio para el entorno virtual y paquetes de usuario
+                    sh 'mkdir -p ~/.local'
+
+                    // Instalar virtualenv en el directorio de usuario
                     sh 'python -m pip install --user virtualenv'
 
-                    // Crear un entorno virtual
-                    sh 'python -m virtualenv env'
+                    // Crear un entorno virtual en un directorio personal
+                    sh 'python -m virtualenv ~/.local/env'
 
                     // Editar el archivo env/bin/activate
-                    sh 'echo "export FLASK_APP=entrypoint:app" >> env/bin/activate'
-                    sh 'echo "export FLASK_ENV=development" >> env/bin/activate'
-                    sh 'echo "export APP_SETTINGS_MODULE=config.default" >> env/bin/activate'
+                    sh 'echo "export FLASK_APP=entrypoint:app" >> ~/.local/env/bin/activate'
+                    sh 'echo "export FLASK_ENV=development" >> ~/.local/env/bin/activate'
+                    sh 'echo "export APP_SETTINGS_MODULE=config.default" >> ~/.local/env/bin/activate'
 
                     // Activar el entorno virtual
-                    sh 'source env/bin/activate'
+                    sh 'source ~/.local/env/bin/activate'
 
                     // Instalar las dependencias de Python desde un archivo requirements.txt
                     sh 'pip install -r requirements.txt'
