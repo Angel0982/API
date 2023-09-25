@@ -1,5 +1,5 @@
 pipeline {
-    agent none
+    agent any
     options {
         skipStagesAfterUnstable()
     }
@@ -10,8 +10,6 @@ pipeline {
                     image 'python:3.7-bullseye'
                 }
             }
-        }
-        stage('Configure') {
             steps {
                 script {
                     // Instalar virtualenv
@@ -36,6 +34,7 @@ pipeline {
                 }
             }
         }
+
         stage('Initialization and Execution') {
             steps {
                 script {
@@ -48,8 +47,20 @@ pipeline {
                     // Aplicar la migración a la base de datos
                     sh 'flask db upgrade'
 
-                    // Ejecutar la aplicación Flask
-                    sh 'flask run'
+                    // No ejecutar 'flask run' aquí, lo haremos en la etapa de implementación
+                }
+            }
+        }
+
+        stage('Deployment') {
+            agent any
+            steps {
+                script {
+                    // Instalar Gunicorn para servir la aplicación Flask
+                    sh 'pip install gunicorn'
+
+                    // Ejecutar la aplicación Flask usando Gunicorn
+                    sh 'gunicorn -b 0.0.0.0:8000 entrypoint:app &'
                 }
             }
         }
@@ -57,6 +68,8 @@ pipeline {
     post {
         always {
             // Cualquier limpieza que necesites hacer después de la ejecución
+            // Por ejemplo, puedes agregar pasos de limpieza aquí, como detener Gunicorn o eliminar archivos temporales
+            sh 'pkill -f gunicorn' // Detener Gunicorn si está en ejecución
         }
     }
 }
