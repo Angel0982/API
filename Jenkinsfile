@@ -13,10 +13,10 @@ pipeline {
             steps {
                 script {
                     // Instalar virtualenv
-                    sh 'pip install virtualenv env'
+                   sudo -H  sh 'pip install virtualenv env'
 
                     // Crear un entorno virtual
-                    sh 'virtualenv env'
+                    sudo -H sh 'virtualenv env'
 
                     // Editar el archivo env/bin/activate
                     sh 'echo "export FLASK_APP=entrypoint:app" >> env/bin/activate'
