@@ -12,11 +12,11 @@ pipeline {
             }
             steps {
                 script {
-                    // Instalar virtualenv
-                    sh 'pip install virtualenv env'
+                    // Instalar virtualenv (no necesitas instalarlo en el entorno global)
+                    sh 'python -m pip install --user virtualenv'
 
                     // Crear un entorno virtual
-                    sh 'virtualenv env'
+                    sh 'python -m virtualenv env'
 
                     // Editar el archivo env/bin/activate
                     sh 'echo "export FLASK_APP=entrypoint:app" >> env/bin/activate'
@@ -26,8 +26,8 @@ pipeline {
                     // Activar el entorno virtual
                     sh 'source env/bin/activate'
 
-                    // Instalar las dependencias de Python
-                    sh 'pip install flask sqlalchemy marshmallow flask_restful flask_sqlalchemy flask_migrate flask_marshmallow marshmallow_sqlalchemy'
+                    // Instalar las dependencias de Python desde un archivo requirements.txt
+                    sh 'pip install -r requirements.txt'
 
                     // Guardar las dependencias en un archivo requirements.txt
                     sh 'pip freeze > requirements.txt'
@@ -56,7 +56,7 @@ pipeline {
             agent any
             steps {
                 script {
-                    // Instalar Gunicorn para servir la aplicación Flask
+                    // Instalar Gunicorn para servir la aplicación Flask (dentro del entorno virtual)
                     sh 'pip install gunicorn'
 
                     // Ejecutar la aplicación Flask usando Gunicorn
