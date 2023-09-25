@@ -1,23 +1,19 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.7-bullseye'
-        }
-    }
+    agent any
     options {
         skipStagesAfterUnstable()
     }
     stages {
         stage('Build') {
-            steps {
-                // Aquí puedes agregar cualquier paso necesario para construir tu aplicación
+            agent {
+                docker {
+                    image 'python:3.7-bullseye'
+                }
             }
-        }
-        stage('Configure') {
             steps {
                 script {
                     // Instalar virtualenv
-                    sh 'pip install virtualenv'
+                    sh 'pip install virtualenv env'
 
                     // Crear un entorno virtual
                     sh 'virtualenv env'
@@ -30,11 +26,15 @@ pipeline {
                     // Activar el entorno virtual
                     sh 'source env/bin/activate'
 
-                    // Instalar las dependencias de Python desde un archivo requirements.txt
-                    sh 'pip install -r requirements.txt'
+                    // Instalar las dependencias de Python
+                    sh 'pip install flask sqlalchemy marshmallow flask_restful flask_sqlalchemy flask_migrate flask_marshmallow marshmallow_sqlalchemy'
+
+                    // Guardar las dependencias en un archivo requirements.txt
+                    sh 'pip freeze > requirements.txt'
                 }
             }
         }
+
         stage('Initialization and Execution') {
             steps {
                 script {
@@ -47,8 +47,20 @@ pipeline {
                     // Aplicar la migración a la base de datos
                     sh 'flask db upgrade'
 
-                    // Ejecutar la aplicación Flask (debes ejecutarlo en segundo plano)
-                    sh 'nohup flask run &'
+                    // No ejecutar 'flask run' aquí, lo haremos en la etapa de implementación
+                }
+            }
+        }
+
+        stage('Deployment') {
+            agent any
+            steps {
+                script {
+                    // Instalar Gunicorn para servir la aplicación Flask
+                    sh 'pip install gunicorn'
+
+                    // Ejecutar la aplicación Flask usando Gunicorn
+                    sh 'gunicorn -b 0.0.0.0:8000 entrypoint:app &'
                 }
             }
         }
