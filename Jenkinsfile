@@ -68,6 +68,8 @@ pipeline {
     post {
         always {
             // Cualquier limpieza que necesites hacer después de la ejecución
+            // Por ejemplo, puedes agregar pasos de limpieza aquí, como detener Gunicorn o eliminar archivos temporales
+            sh 'pkill -f gunicorn' // Detener Gunicorn si está en ejecución
         }
     }
 }
