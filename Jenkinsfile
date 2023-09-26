@@ -33,8 +33,13 @@ pipeline {
                     sh "pip freeze > requirements.txt"
 
                     // Instalar Flask localmente en el directorio del proyecto
-                    sh "phyton -m pip --user Flask"
-
+                    sh "pip install --target . Flask"
+                }
+            }
+        }
+        stage('Inicialización y Ejecución') {
+            steps {
+                script {
                     // Inicializar la base de datos (flask db init)
                     sh "flask db init"
 
@@ -43,21 +48,12 @@ pipeline {
 
                     // Aplicar la migración a la base de datos (flask db upgrade)
                     sh "flask db upgrade"
-                }
-            }
-        }
-        
-        // Nueva etapa para ejecutar la aplicación Flask
-        stage('Run') {
-            steps {
-                script {
+
                     // Ejecutar la aplicación Flask (flask run)
                     sh "flask run &"
                 }
             }
         }
-
-        // Resto de las etapas (Initialization and Execution, Deployment) sin cambios
     }
     post {
         always {
@@ -65,8 +61,8 @@ pipeline {
             // Por ejemplo, puedes agregar pasos de limpieza aquí, como detener Gunicorn o eliminar archivos temporales
             script {
                 try {
-                    // Usar el camino completo hacia pkill, reemplace "/usr/bin/pkill" con la ubicación real de pkill en su sistema
-                    sh '/usr/bin/pkill -f gunicorn'
+                    // Detener Gunicorn usando kill
+                    sh 'pkill -f gunicorn'
                 } catch (Exception e) {
                     echo 'Gunicorn no estaba en ejecución.'
                 }
