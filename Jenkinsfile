@@ -18,55 +18,30 @@ pipeline {
                     // Crear un entorno virtual en el directorio del proyecto
                     sh "python -m virtualenv env"
 
-                    // Activar el entorno virtual con el operador punto
-                    sh ". env/bin/activate"
-
-                    // Editar el archivo env/bin/activate (si es necesario)
-                    sh "echo 'export FLASK_APP=entrypoint:app' >> env/bin/activate"
-                    sh "echo 'export FLASK_ENV=development' >> env/bin/activate"
-                    sh "echo 'export APP_SETTINGS_MODULE=config.default' >> env/bin/activate"
-
-                    // Instalar las dependencias de Python desde un archivo requirements.txt
-                    sh "pip install --target . -r requirements.txt"
-
-                    // Guardar las dependencias en un archivo requirements.txt
-                    sh "pip freeze > requirements.txt"
-
-                    // Instalar Flask localmente en el directorio del proyecto
-                    sh "pip install --target . Flask"
+                    // Activar el entorno virtual y ejecutar comandos
+                    sh "env/bin/python -m pip install --target . -r requirements.txt"
+                    sh "env/bin/python entrypoint.py db init"
+                    sh "env/bin/python entrypoint.py db migrate -m 'Initial_DB'"
+                    sh "env/bin/python entrypoint.py db upgrade"
                 }
             }
         }
-        stage('Initialization and Execution') {
+        stage('Deployment') {
             steps {
+                // Activar el entorno virtual antes de ejecutar el servidor Flask
+                sh "env/bin/python entrypoint.py run"
                 script {
-                    // Inicializar la base de datos (flask db init)
-                    sh "env/bin/flask db init"
-
-                    // Crear una migración de la base de datos (flask db migrate)
-                    sh "env/bin/flask db migrate -m 'Initial_DB'"
-
-                    // Aplicar la migración a la base de datos (flask db upgrade)
-                    sh "env/bin/flask db upgrade"
-
-                    // Ejecutar la aplicación Flask (flask run)
-                    sh "env/bin/flask run &"
+                    retry(20) {
+                        def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://localhost:5000", returnStatus: true)
+                        return response == 200
+                    }
                 }
             }
         }
     }
     post {
         always {
-            // Cualquier limpieza que necesites hacer después de la ejecución
-            // Por ejemplo, puedes agregar pasos de limpieza aquí, como detener Gunicorn o eliminar archivos temporales
-            script {
-                try {
-                    // Detener Gunicorn usando kill
-                    sh '/usr/bin/pkill -f gunicorn'
-                } catch (Exception e) {
-                    echo 'Gunicorn no estaba en ejecución.'
-                }
-            }
+            sh "pkill -f 'python entrypoint.py run'"
         }
     }
 }
