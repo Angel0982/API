@@ -12,6 +12,13 @@ pipeline {
             }
             steps {
                 script {
+                    
+                    // Cambia el directorio de caché predeterminado de pip
+                    sh "export XDG_CACHE_HOME=/home/yair/API/cache"
+                    sh "python -m pip install --target . virtualenv"
+
+
+
                     // Configura un directorio de caché personalizado
                    // def customCacheDir = '/home/yair/API/cache'
 
