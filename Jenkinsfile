@@ -18,8 +18,8 @@ pipeline {
                     // Crear un entorno virtual en el directorio del proyecto
                     sh "python -m virtualenv env"
 
-                    // Activar el entorno virtual con el comando source
-                    sh "source env/bin/activate"
+                    // Activar el entorno virtual
+                    sh "./env/bin/activate"
 
                     // Instalar Flask en el entorno virtual
                     sh "pip install Flask"
@@ -39,8 +39,8 @@ pipeline {
         }
         stage('Initialization and Execution') {
             steps {
-                // Activar el entorno virtual con el comando source
-                sh "source env/bin/activate"
+                // Activar el entorno virtual
+                sh "./env/bin/activate"
                 sh "env/bin/flask db init"
                 sh "env/bin/flask db migrate -m 'Initial_DB'"
                 sh "env/bin/flask db upgrade"
@@ -48,8 +48,8 @@ pipeline {
         }
         stage('Deployment') {
             steps {
-                // Activar el entorno virtual con el comando source
-                sh "source env/bin/activate"
+                // Activar el entorno virtual
+                sh "./env/bin/activate"
                 sh "flask run &"
                 script {
                     retry(20) {
@@ -67,3 +67,4 @@ pipeline {
         }
     }
 }
+
