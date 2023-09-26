@@ -36,7 +36,7 @@ pipeline {
                     sh "pip install --target . Flask"
 
                    // Instalar Flask en el entorno virtual si no está instalado
-		   sh "pip install Flask"
+		   sh "python -m pip install Flask"
 
 		    // Inicializar la base de datos (flask db init)
                     sh "flask db init"
