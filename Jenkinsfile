@@ -12,31 +12,28 @@ pipeline {
             }
             steps {
                 script {
-                    // Crear un usuario para el entorno virtual
-                    sh 'adduser --disabled-password --gecos "" myuser'
-                    
-                    // Cambiar al usuario 'myuser'
-                    sh 'su myuser'
+                    // Utilizar un usuario existente
+                    def username = 'myuser'
                     
                     // Instalar virtualenv (no necesitas instalarlo en el entorno global)
-                    sh 'python -m pip install virtualenv'
+                    sh "python -m pip install --user virtualenv"
 
-                    // Crear un entorno virtual
-                    sh 'python -m virtualenv env'
+                    // Crear un entorno virtual en el directorio home del usuario
+                    sh "python -m virtualenv /home/${username}/env"
 
                     // Editar el archivo env/bin/activate
-                    sh 'echo "export FLASK_APP=entrypoint:app" >> env/bin/activate'
-                    sh 'echo "export FLASK_ENV=development" >> env/bin/activate'
-                    sh 'echo "export APP_SETTINGS_MODULE=config.default" >> env/bin/activate'
+                    sh "echo 'export FLASK_APP=entrypoint:app' >> /home/${username}/env/bin/activate"
+                    sh "echo 'export FLASK_ENV=development' >> /home/${username}/env/bin/activate"
+                    sh "echo 'export APP_SETTINGS_MODULE=config.default' >> /home/${username}/env/bin/activate"
 
                     // Activar el entorno virtual
-                    sh 'source env/bin/activate'
+                    sh "source /home/${username}/env/bin/activate"
 
                     // Instalar las dependencias de Python desde un archivo requirements.txt
-                    sh 'pip install -r requirements.txt'
+                    sh "pip install -r requirements.txt"
 
                     // Guardar las dependencias en un archivo requirements.txt
-                    sh 'pip freeze > requirements.txt'
+                    sh "pip freeze > requirements.txt"
                 }
             }
         }
@@ -63,10 +60,10 @@ pipeline {
             steps {
                 script {
                     // Instalar Gunicorn para servir la aplicación Flask (dentro del entorno virtual)
-                    sh 'pip install gunicorn'
+                    sh "pip install --user gunicorn"
 
                     // Ejecutar la aplicación Flask usando Gunicorn
-                    sh 'gunicorn -b 0.0.0.0:8000 entrypoint:app &' // '&' para ejecutar en segundo plano
+                    sh "gunicorn -b 0.0.0.0:8000 entrypoint:app &" // '&' para ejecutar en segundo plano
                 }
             }
         }
