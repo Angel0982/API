@@ -12,15 +12,8 @@ pipeline {
             }
             steps {
                 script {
-                    
-                    // Cambia el directorio de caché predeterminado de pip
+                    // Configura un directorio de caché personalizado para pip
                     sh "export XDG_CACHE_HOME=/home/yair/API/cache"
-                    sh "python -m pip install --target . virtualenv"
-
-
-
-                    // Configura un directorio de caché personalizado
-                   // def customCacheDir = '/home/yair/API/cache'
 
                     // Instalar virtualenv localmente en el directorio del proyecto
                     sh "python -m pip install --target . virtualenv"
@@ -35,9 +28,6 @@ pipeline {
                     sh "echo 'export FLASK_APP=entrypoint:app' >> env/bin/activate"
                     sh "echo 'export FLASK_ENV=development' >> env/bin/activate"
                     sh "echo 'export APP_SETTINGS_MODULE=config.default' >> env/bin/activate"
-
-                    // Configura PIP_CACHE_DIR
-                   // sh "export PIP_CACHE_DIR=${customCacheDir}"
 
                     // Instalar las dependencias de Python desde un archivo requirements.txt
                     sh "pip install -r requirements.txt"
