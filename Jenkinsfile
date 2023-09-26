@@ -34,30 +34,28 @@ pipeline {
                 }
             }
         }
-        
-        stage('Initialize Database') {
+        stage('Initialization and Execution') {
             steps {
+                sh "env/bin/flask db init"
+                sh "env/bin/flask db migrate -m 'Initial_DB'"
+                sh "env/bin/flask db upgrade"
+            }
+        }
+        stage('Deployment') {
+            steps {
+                sh "flask run &"
                 script {
-                    // Ejecutar el comando "flask db init"
-                    sh ". env/bin/activate && flask db init"
+                    retry(20) {
+                        def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://localhost:5000", returnStatus: true)
+                        return response == 200
+                    }
                 }
             }
         }
-
-        // Resto de las etapas (Initialization and Execution, Deployment) sin cambios
     }
     post {
         always {
-            // Cualquier limpieza que necesites hacer después de la ejecución
-            // Por ejemplo, puedes agregar pasos de limpieza aquí, como detener Gunicorn o eliminar archivos temporales
-            script {
-                try {
-                    // Detener Gunicorn si está en ejecución
-                    sh '/usr/bin/pgrep -f gunicorn'
-                } catch (Exception e) {
-                    echo 'Gunicorn no estaba en ejecución.'
-                }
-            }
+            sh "pkill -f 'flask run'"
         }
     }
 }
