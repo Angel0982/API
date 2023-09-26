@@ -1,65 +1,38 @@
 pipeline {
-    agent {
-        dockerfile {
-            filename '/home/yair/API/Dockerfile' // Nombre del Dockerfile en tu repositorio
-//            label 'API-3.7' // Etiqueta opcional para el agente
-        }
-    }
+    agent any
     options {
         skipStagesAfterUnstable()
     }
     stages {
-        stage('Build') {
-            agent {
-                docker {
-                    image 'python:3.7-bullseye'
-                }
-            }
+        stage('Build and Setup') {
             steps {
+                // Construir la imagen Docker con el Dockerfile modificado
                 script {
-                    // Instalar virtualenv localmente en el directorio del proyecto
-                    sh "python -m pip install --target . virtualenv"
-
-                    // Crear un entorno virtual en el directorio del proyecto
-                    sh "python -m virtualenv env"
-
-                    // Editar el archivo env/bin/activate (si es necesario)
-                    sh "echo 'export FLASK_APP=entrypoint:app' >> env/bin/activate"
-                    sh "echo 'export FLASK_DEBUG=1' >> env/bin/activate"
-                    sh "echo 'export APP_SETTINGS_MODULE=config.default' >> env/bin/activate"
-                    sh "cat env/bin/activate"
-
-                    // Activar el entorno virtual y ejecutar comandos
-                    sh "chmod +x env/bin/activate"
-                    sh "./env/bin/activate && pip install --target . -r requirements.txt"
-                    sh "./env/bin/activate && pip freeze > requirements.txt"
+                    dockerImage = docker.build('my-flask-app', '-f Dockerfile .')
                 }
+                // Realizar acciones de configuración en la imagen Docker
+                sh '''
+                    docker run --rm -d -p 192.168.3.164:5000:5000 -v $PWD:/app -w /app my-flask-app /bin/bash -c "
+                    source env/bin/activate &&
+                    flask db init &&
+                    flask db migrate -m 'Initial_DB' &&
+                    flask db upgrade &&
+                    flask run --host=0.0.0.0"
+                '''
             }
         }
-        stage('Initialization and Execution') {
+        stage('Wait for Flask to Start') {
             steps {
-                // Activar el entorno virtual y ejecutar comandos de Flask
-                sh "./env/bin/activate && flask db init"
-                sh "./env/bin/activate && flask db migrate -m 'Initial_DB'"
-                sh "./env/bin/activate && flask db upgrade"
-            }
-        }
-        stage('Deployment') {
-            steps {
-                // Activar el entorno virtual antes de ejecutar el servidor Flask
-                sh "./env/bin/activate && flask run &"
                 script {
-                    retry(20) {
-                        def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://localhost:5000", returnStatus: true)
-                        return response == 200
+                    // Esperar a que Flask esté en funcionamiento antes de continuar
+                    timeout(time: 5, unit: 'MINUTES') {
+                        // Puedes agregar una lógica para verificar si Flask está listo para recibir solicitudes
+                        // Por ejemplo, puedes realizar una solicitud HTTP de prueba a la API para verificar su disponibilidad
+                        // Cuando Flask esté listo, proporciona la URL de la API al usuario
+                        input(message: 'La API Flask está en funcionamiento. Puedes acceder a ella en:', parameters: [string(defaultValue: 'http://192.168.3.164:5000', description: 'URL de la API', name: 'API_URL')])
                     }
                 }
             }
-        }
-    }
-    post {
-        always {
-            sh "pkill -f 'flask run'"
         }
     }
 }
