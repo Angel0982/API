@@ -33,7 +33,7 @@ pipeline {
                     sh "pip freeze > requirements.txt"
 
                     // Instalar Flask localmente en el directorio del proyecto
-                    sh "pip install --target . Flask"
+                    sh "pip install --target flask"
 
                     // Inicializar la base de datos (flask db init)
                     sh "flask db init"
