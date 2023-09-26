@@ -19,7 +19,7 @@ pipeline {
                     sh "python -m virtualenv env"
 
                     // Activar el entorno virtual con el operador punto
-                    sh ". env/bin/activate"
+                    sh "env/bin/activate"
 
                     // Editar el archivo env/bin/activate (si es necesario)
                     sh "echo 'export FLASK_APP=entrypoint:app' >> env/bin/activate"
