@@ -30,7 +30,7 @@ pipeline {
                     sh "echo 'export APP_SETTINGS_MODULE=config.default' >> env/bin/activate"
 
                     // Configura PIP_CACHE_DIR
-                    sh "export PIP_CACHE_DIR=${customCacheDir}"
+                    sh "export PIP_CACHE_DIR=/home/yair/Cache"
 
                     // Instalar las dependencias de Python desde un archivo requirements.txt
                     sh "pip install -r requirements.txt"
