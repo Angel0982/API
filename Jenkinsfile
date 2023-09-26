@@ -27,7 +27,8 @@ pipeline {
                     sh "echo 'export APP_SETTINGS_MODULE=config.default' >> env/bin/activate"
 
                     // Instalar las dependencias de Python desde un archivo requirements.txt
-                    sh "pip install -r requirements.txt"
+                    sh "python -m 
+pip install -r requirements.txt"
 
                     // Guardar las dependencias en un archivo requirements.txt
                     sh "pip freeze > requirements.txt"
