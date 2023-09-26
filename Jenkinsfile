@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        dockerfile {
+            filename 'Dockerfile' // Nombre del Dockerfile en tu repositorio
+            label 'API-3.7' // Etiqueta opcional para el agente
+        }
+    }
     options {
         skipStagesAfterUnstable()
     }
@@ -20,7 +25,7 @@ pipeline {
 
                     // Editar el archivo env/bin/activate (si es necesario)
                     sh "echo 'export FLASK_APP=entrypoint:app' >> env/bin/activate"
-                    sh "echo 'export DEBUG=1' >> env/bin/activate"
+                    sh "echo 'export FLASK_DEBUG=1' >> env/bin/activate"
                     sh "echo 'export APP_SETTINGS_MODULE=config.default' >> env/bin/activate"
                     sh "cat env/bin/activate"
 
