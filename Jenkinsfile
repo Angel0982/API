@@ -12,9 +12,6 @@ pipeline {
             }
             steps {
                 script {
-                    // Configura un directorio de caché personalizado para pip
-                    sh "export XDG_CACHE_HOME=/home/yair/API/cache"
-
                     // Instalar virtualenv localmente en el directorio del proyecto
                     sh "python -m pip install --target . virtualenv"
 
@@ -30,7 +27,7 @@ pipeline {
                     sh "echo 'export APP_SETTINGS_MODULE=config.default' >> env/bin/activate"
 
                     // Instalar las dependencias de Python desde un archivo requirements.txt
-                    sh "pip install -r requirements.txt"
+                    sh "pip install --target . -r requirements.txt"
 
                     // Guardar las dependencias en un archivo requirements.txt
                     sh "pip freeze > requirements.txt"
