@@ -1,7 +1,7 @@
 pipeline {
     agent {
         dockerfile {
-            filename 'Dockerfile' // Nombre del Dockerfile en tu repositorio
+            filename '/home/yair/API/Dockerfile' // Nombre del Dockerfile en tu repositorio
 //            label 'API-3.7' // Etiqueta opcional para el agente
         }
     }
