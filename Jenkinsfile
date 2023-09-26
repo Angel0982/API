@@ -13,7 +13,7 @@ pipeline {
             steps {
                 script {
                     // Instalar virtualenv localmente en el directorio del proyecto
-                    sh "python -m pip install --user virtualenv"
+                    sh "python -m pip install --target . virtualenv"
 
                     // Crear un entorno virtual en el directorio del proyecto
                     sh "python -m virtualenv env"
@@ -27,7 +27,7 @@ pipeline {
                     sh "echo 'export APP_SETTINGS_MODULE=config.default' >> env/bin/activate"
 
                     // Instalar las dependencias de Python desde un archivo requirements.txt
-                    sh "pip install --user -r requirements.txt"
+                    sh "pip install -r requirements.txt"
 
                     // Guardar las dependencias en un archivo requirements.txt
                     sh "pip freeze > requirements.txt"
@@ -52,4 +52,3 @@ pipeline {
         }
     }
 }
-
