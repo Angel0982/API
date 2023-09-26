@@ -13,7 +13,8 @@ pipeline {
             steps {
                 script {
                     // Instalar virtualenv (no necesitas instalarlo en el entorno global)
-                    sudo -H python -m pip install virtualenv
+                    sudo env "PATH=$PATH" python -m pip install virtualenv
+
 
 
                     // Crear un entorno virtual
