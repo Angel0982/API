@@ -18,13 +18,13 @@ pipeline {
                     // Crear un entorno virtual en el directorio del proyecto
                     sh "python -m virtualenv env"
 
+                    // Activar el entorno virtual con el operador punto
+                    sh ". env/bin/activate"
+
                     // Editar el archivo env/bin/activate (si es necesario)
                     sh "echo 'export FLASK_APP=entrypoint:app' >> env/bin/activate"
                     sh "echo 'export FLASK_ENV=development' >> env/bin/activate"
                     sh "echo 'export APP_SETTINGS_MODULE=config.default' >> env/bin/activate"
-
-                    // Activar el entorno virtual con el operador punto
-                    sh "source env/bin/activate"
 
                     // Instalar las dependencias de Python desde un archivo requirements.txt
                     sh "pip install --target . -r requirements.txt"
@@ -32,8 +32,8 @@ pipeline {
                     // Guardar las dependencias en un archivo requirements.txt
                     sh "pip freeze > requirements.txt"
 
-                    // Instalar Flask localmente en el directorio del proyecto si no está instalado en el entorno virtual
-                    sh "pip install Flask"
+                    // Instalar Flask localmente en el directorio del proyecto
+                    sh "pip install --target . Flask"
 
                     // Inicializar la base de datos (flask db init)
                     sh "flask db init"
@@ -74,4 +74,3 @@ pipeline {
         }
     }
 }
-
