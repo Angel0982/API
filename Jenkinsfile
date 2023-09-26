@@ -18,7 +18,7 @@ pipeline {
                     // Crear un entorno virtual en el directorio del proyecto
                     sh "python -m virtualenv env"
 
-                    // Activar el entorno virtual con el operador punto
+                    // Activar el entorno virtual
                     sh ". env/bin/activate"
 
                     // Editar el archivo env/bin/activate (si es necesario)
