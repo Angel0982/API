@@ -35,7 +35,10 @@ pipeline {
                     // Instalar Flask localmente en el directorio del proyecto
                     sh "pip install --target . Flask"
 
-                    // Inicializar la base de datos (flask db init)
+                   // Instalar Flask en el entorno virtual si no está instalado
+		   sh "pip install Flask"
+
+		    // Inicializar la base de datos (flask db init)
                     sh "flask db init"
 
                     // Crear una migración de la base de datos (flask db migrate)
