@@ -13,7 +13,7 @@ pipeline {
             steps {
                 script {
                     // Configura un directorio de caché personalizado
-                    def customCacheDir = '/ruta/a/un/directorio/de/caché/personalizado'
+                    def customCacheDir = '/home/yair/Cache'
 
                     // Instalar virtualenv localmente en el directorio del proyecto
                     sh "python -m pip install --target . virtualenv"
