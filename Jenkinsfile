@@ -44,7 +44,7 @@ pipeline {
             script {
                 try {
                     // Detener Gunicorn si está en ejecución
-                    sh '/usr/bin/pkill -f gunicorn'
+                    sh '/usr/bin/pgrep -f gunicorn'
                 } catch (Exception e) {
                     echo 'Gunicorn no estaba en ejecución.'
                 }
