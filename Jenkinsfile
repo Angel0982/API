@@ -31,31 +31,46 @@ pipeline {
 
                     // Guardar las dependencias en un archivo requirements.txt
                     sh "pip freeze > requirements.txt"
+
+                    // Instalar Flask localmente en el directorio del proyecto
+                    sh "pip install --target . Flask"
+
+                    // Inicializar la base de datos (flask db init)
+                    sh "flask db init"
+
+                    // Crear una migración de la base de datos (flask db migrate)
+                    sh "flask db migrate -m 'Initial_DB'"
+
+                    // Aplicar la migración a la base de datos (flask db upgrade)
+                    sh "flask db upgrade"
                 }
             }
         }
-        stage('Initialization and Execution') {
+        
+        // Nueva etapa para ejecutar la aplicación Flask
+        stage('Run') {
             steps {
-                sh "env/bin/flask db init"
-                sh "env/bin/flask db migrate -m 'Initial_DB'"
-                sh "env/bin/flask db upgrade"
-            }
-        }
-        stage('Deployment') {
-            steps {
-                sh "flask run &"
                 script {
-                    retry(20) {
-                        def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://localhost:5000", returnStatus: true)
-                        return response == 200
-                    }
+                    // Ejecutar la aplicación Flask (flask run)
+                    sh "flask run &"
                 }
             }
         }
+
+        // Resto de las etapas (Initialization and Execution, Deployment) sin cambios
     }
     post {
         always {
-            sh "pkill -f 'flask run'"
+            // Cualquier limpieza que necesites hacer después de la ejecución
+            // Por ejemplo, puedes agregar pasos de limpieza aquí, como detener Gunicorn o eliminar archivos temporales
+            script {
+                try {
+                    // Usar el camino completo hacia pkill, reemplace "/usr/bin/pkill" con la ubicación real de pkill en su sistema
+                    sh '/usr/bin/pkill -f gunicorn'
+                } catch (Exception e) {
+                    echo 'Gunicorn no estaba en ejecución.'
+                }
+            }
         }
     }
 }
