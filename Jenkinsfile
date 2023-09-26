@@ -8,7 +8,7 @@ pipeline {
             steps {
                 // Construir la imagen Docker con el Dockerfile modificado
                 script {
-                    dockerImage = docker.build('my-flask-app', '-f Dockerfile .')
+                    dockerImage = docker.build('/home/API/', '-f Dockerfile .')
                 }
                 // Realizar acciones de configuración en la imagen Docker
                 sh '''
