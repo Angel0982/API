@@ -12,10 +12,14 @@ pipeline {
             }
             steps {
                 script {
+                    // Crear un usuario para el entorno virtual
+                    sh 'adduser --disabled-password --gecos "" myuser'
+                    
+                    // Cambiar al usuario 'myuser'
+                    sh 'su myuser'
+                    
                     // Instalar virtualenv (no necesitas instalarlo en el entorno global)
-                    sh 'env "PATH=$PATH" python -m pip install virtualenv'
-
-
+                    sh 'python -m pip install virtualenv'
 
                     // Crear un entorno virtual
                     sh 'python -m virtualenv env'
