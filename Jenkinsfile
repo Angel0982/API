@@ -32,14 +32,17 @@ pipeline {
                     // Guardar las dependencias en un archivo requirements.txt
                     sh "pip freeze > requirements.txt"
 
-                    // Instalar Flask localmente en el directorio del proyecto
-                    sh "pip install --target . Flask"
+                    // Instalar Flask localmente en el directorio del proyecto (si no está instalado)
+                    sh "pip install --target env Flask"
                 }
             }
         }
-        stage('Inicialización y Ejecución') {
+        stage('Initialization and Execution') {
             steps {
                 script {
+                    // Activar el entorno virtual antes de continuar
+                    sh ". env/bin/activate"
+
                     // Inicializar la base de datos (flask db init)
                     sh "flask db init"
 
