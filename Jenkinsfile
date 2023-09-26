@@ -32,28 +32,25 @@ pipeline {
                     // Guardar las dependencias en un archivo requirements.txt
                     sh "pip freeze > requirements.txt"
 
-                    // Instalar Flask localmente en el directorio del proyecto (si no está instalado)
-                    sh "pip install --target env Flask"
+                    // Instalar Flask localmente en el directorio del proyecto
+                    sh "pip install --target . Flask"
                 }
             }
         }
         stage('Initialization and Execution') {
             steps {
                 script {
-                    // Activar el entorno virtual antes de continuar
-                    sh ". env/bin/activate"
-
                     // Inicializar la base de datos (flask db init)
-                    sh "flask db init"
+                    sh "env/bin/flask db init"
 
                     // Crear una migración de la base de datos (flask db migrate)
-                    sh "flask db migrate -m 'Initial_DB'"
+                    sh "env/bin/flask db migrate -m 'Initial_DB'"
 
                     // Aplicar la migración a la base de datos (flask db upgrade)
-                    sh "flask db upgrade"
+                    sh "env/bin/flask db upgrade"
 
                     // Ejecutar la aplicación Flask (flask run)
-                    sh "flask run &"
+                    sh "env/bin/flask run &"
                 }
             }
         }
@@ -65,7 +62,7 @@ pipeline {
             script {
                 try {
                     // Detener Gunicorn usando kill
-                    sh 'pkill -f gunicorn'
+                    sh '/usr/bin/pkill -f gunicorn'
                 } catch (Exception e) {
                     echo 'Gunicorn no estaba en ejecución.'
                 }
