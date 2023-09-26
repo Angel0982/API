@@ -24,7 +24,7 @@ pipeline {
                     sh 'echo "export APP_SETTINGS_MODULE=config.default" >> env/bin/activate'
 
                     // Activar el entorno virtual
-                    sh '. source env/bin/activate'
+                    sh 'source env/bin/activate'
 
                     // Instalar las dependencias de Python desde un archivo requirements.txt
                     sh 'pip install -r requirements.txt'
