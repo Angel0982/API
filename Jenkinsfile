@@ -34,6 +34,15 @@ pipeline {
                 }
             }
         }
+        
+        stage('Initialize Database') {
+            steps {
+                script {
+                    // Ejecutar el comando "flask db init"
+                    sh ". env/bin/activate && flask db init"
+                }
+            }
+        }
 
         // Resto de las etapas (Initialization and Execution, Deployment) sin cambios
     }
