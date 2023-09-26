@@ -15,17 +15,11 @@ pipeline {
                     // Instalar virtualenv localmente en el directorio del proyecto
                     sh "python -m pip install --target . virtualenv"
 
-                    // Verificar si el directorio 'env' ya existe
-                    if (!fileExists('env')) {
-                        // Crear un entorno virtual en el directorio del proyecto si no existe
-                        sh "python -m virtualenv env"
-                    }
+                    // Crear un entorno virtual en el directorio del proyecto
+                    sh "python -m virtualenv env"
 
-                    // Activar el entorno virtual
-                    sh "source env/bin/activate"
-
-                    // Instalar Flask en el entorno virtual
-                    sh "pip install Flask"
+                    // Activar el entorno virtual con el operador punto
+                    sh ". env/bin/activate"
 
                     // Editar el archivo env/bin/activate (si es necesario)
                     sh "echo 'export FLASK_APP=entrypoint:app' >> env/bin/activate"
@@ -42,8 +36,6 @@ pipeline {
         }
         stage('Initialization and Execution') {
             steps {
-                // Activar el entorno virtual
-                sh "source env/bin/activate"
                 sh "env/bin/flask db init"
                 sh "env/bin/flask db migrate -m 'Initial_DB'"
                 sh "env/bin/flask db upgrade"
@@ -51,8 +43,6 @@ pipeline {
         }
         stage('Deployment') {
             steps {
-                // Activar el entorno virtual
-                sh "source env/bin/activate"
                 sh "flask run &"
                 script {
                     retry(20) {
@@ -65,7 +55,6 @@ pipeline {
     }
     post {
         always {
-            // Detener Flask usando pkill
             sh "pkill -f 'flask run'"
         }
     }
