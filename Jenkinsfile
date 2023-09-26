@@ -33,7 +33,7 @@ pipeline {
                     sh "pip freeze > requirements.txt"
 
                     // Instalar Flask localmente en el directorio del proyecto
-                    sh "phyton -m pip --target Flask"
+                    sh "phyton -m pip --user Flask"
 
                     // Inicializar la base de datos (flask db init)
                     sh "flask db init"
