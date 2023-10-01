@@ -1,37 +1,27 @@
 pipeline {
     agent any
-    options {
-        skipStagesAfterUnstable()
-    }
+    
     stages {
-        stage('Build and Setup') {
+        stage('Configuración') {
             steps {
-                // Construir la imagen Docker con el Dockerfile modificado
-                script {
-                    dockerImage = docker.build('/home/API/', '-f Dockerfile .')
-                }
-                // Realizar acciones de configuración en la imagen Docker
-                sh '''
-                    docker run --rm -d -p 192.168.3.164:5000:5000 -v $PWD:/app -w /app my-flask-app /bin/bash -c "
-                    source env/bin/activate &&
-                    flask db init &&
-                    flask db migrate -m 'Initial_DB' &&
-                    flask db upgrade &&
-                    flask run --host=0.0.0.0"
-                '''
+                sh 'pip install virtualenv env'
+                sh 'virtualenv env'
+                sh 'echo "export FLASK_APP=\"entrypoint:app\"" >> env/bin/activate'
+                sh 'echo "export FLASK_ENV=\"development\"" >> env/bin/activate'
+                sh 'echo "export APP_SETTINGS_MODULE=\"config.default\"" >> env/bin/activate'
+                sh 'source env/bin/activate'
+                sh 'pip install flask sqlalchemy marshmallow flask_restful flask_sqlalchemy flask_migrate flask_marshmallow marshmallow_sqlalchemy'
+                sh 'pip freeze > requirements.txt'
             }
         }
-        stage('Wait for Flask to Start') {
+        
+        stage('Inicialización y Ejecución') {
             steps {
-                script {
-                    // Esperar a que Flask esté en funcionamiento antes de continuar
-                    timeout(time: 5, unit: 'MINUTES') {
-                        // Puedes agregar una lógica para verificar si Flask está listo para recibir solicitudes
-                        // Por ejemplo, puedes realizar una solicitud HTTP de prueba a la API para verificar su disponibilidad
-                        // Cuando Flask esté listo, proporciona la URL de la API al usuario
-                        input(message: 'La API Flask está en funcionamiento. Puedes acceder a ella en:', parameters: [string(defaultValue: 'http://192.168.3.164:5000', description: 'URL de la API', name: 'API_URL')])
-                    }
-                }
+                sh 'source env/bin/activate'
+                sh 'flask db init'
+                sh 'flask db migrate -m "Initial_DB"'
+                sh 'flask db upgrade'
+                sh 'flask run'
             }
         }
     }
