@@ -13,7 +13,7 @@ pipeline {
                 // Realizar acciones de configuración en la imagen Docker
                 sh '''
                     docker run --rm -d -p 5000:5000 -v /var/jenkins_home/workspace/API:/app -w /app my-flask-app /bin/bash -c "source env/bin/activate && flask db init && flask db migrate -m 'Initial_DB' && flask db upgrade && flask run --host=0.0.0.0"
-                    source env/bin/activate &&
+		    source env/bin/activate &&
                     flask db init &&
                     flask db migrate -m 'Initial_DB' &&
                     flask db upgrade &&
