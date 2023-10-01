@@ -23,7 +23,8 @@ pipeline {
                     sh "env/bin/python entrypoint.py db init"
                     sh "env/bin/python entrypoint.py db migrate -m 'Initial_DB'"
                     sh "env/bin/python entrypoint.py db upgrade"
-                }
+                    sh 'pip install flask sqlalchemy marshmallow flask_restful flask_sqlalchemy flask_migrate flask_marshmallow marshmallow_sqlalchemy psycopg2-binary'  // Agregamos psycopg2-binary aquí
+		 }
             }
         }
         stage('Deployment') {
