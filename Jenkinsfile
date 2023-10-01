@@ -24,12 +24,30 @@ pipeline {
         stage('Wait for Flask to Start') {
             steps {
                 script {
-                    // Esperar a que Flask esté en funcionamiento antes de continuar
-                    timeout(time: 5, unit: 'MINUTES') {
-                        // Puedes agregar una lógica para verificar si Flask está listo para recibir solicitudes
-                        // Por ejemplo, puedes realizar una solicitud HTTP de prueba a la API para verificar su disponibilidad
-                        // Cuando Flask esté listo, proporciona la URL de la API al usuario
-                        input(message: 'La API Flask está en funcionamiento. Puedes acceder a ella en:', parameters: [string(defaultValue: 'http://0.0.0.0:5000', description: 'URL de la API', name: 'API_URL')])
+                    def isFlaskRunning = false
+                    def maxAttempts = 30
+                    def attempt = 0
+                    def apiUrl = 'http://0.0.0.0:5000'  // La URL de tu API Flask
+
+                    // Esperar hasta que la API Flask esté en funcionamiento o hasta que se alcance el número máximo de intentos
+                    while (!isFlaskRunning && attempt < maxAttempts) {
+                        try {
+                            // Realizar una solicitud HTTP a la API Flask
+                            def response = httpRequest(url: apiUrl, validResponseCodes: '200', ignoreSslErrors: true)
+                            if (response.status == 200) {
+                                isFlaskRunning = true
+                            }
+                        } catch (Exception e) {
+                            // La solicitud falló, esperar unos segundos antes de intentar nuevamente
+                            sleep time: 10, unit: 'SECONDS'
+                            attempt++
+                        }
+                    }
+
+                    if (isFlaskRunning) {
+                        echo "La API Flask está en funcionamiento. Puedes acceder a ella en: $apiUrl"
+                    } else {
+                        error "La API Flask no se pudo iniciar después de $maxAttempts intentos."
                     }
                 }
             }
