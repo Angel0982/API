@@ -12,7 +12,7 @@ pipeline {
                 }
                 // Realizar acciones de configuración en la imagen Docker
                 sh '''
-                    docker run --rm -d -p 0.0.0.0:5000:5000 -v $PWD:/app -w /app jenkins-docker /bin/bash -c "
+                    docker run --rm -d -p 0.0.0.0:50000:50000 -v $PWD:/app -w /app jenkins-docker /bin/bash -c "
                     source env/bin/activate &&
                     flask db init &&
                     flask db migrate -m 'Initial_DB' &&
