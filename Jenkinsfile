@@ -4,53 +4,44 @@ pipeline {
         skipStagesAfterUnstable()
     }
     stages {
-        stage('Build and Setup') {
-            steps {
-                // Construir la imagen Docker con el Dockerfile modificado
-                script {
-                    dockerImage = docker.build('jenkins-docker', '-f Dockerfile .')
+        stage('Build') {
+            agent {
+                docker {
+                    image 'python:3.7-bullseye'
                 }
-                // Realizar acciones de configuración en la imagen Docker
-                sh '''
-                    docker run --rm -d -p 0.0.0.0:50000:50000 -v $PWD:/app -w /app jenkins-docker /bin/bash -c "
-                    source env/bin/activate &&
-                    flask db init &&
-                    flask db migrate -m 'Initial_DB' &&
-                    flask db upgrade &&
-                    flask run --host=0.0.0.0"
-                '''
+            }
+            steps {
+                script {
+                    // Instalar virtualenv localmente en el directorio del proyecto
+                    sh "python -m pip install --target . virtualenv"
+
+                    // Crear un entorno virtual en el directorio del proyecto
+                    sh "python -m virtualenv env"
+
+                    // Activar el entorno virtual y ejecutar comandos
+                    sh "env/bin/python -m pip install --target . -r requirements.txt"
+                    sh "env/bin/python entrypoint.py db init"
+                    sh "env/bin/python entrypoint.py db migrate -m 'Initial_DB'"
+                    sh "env/bin/python entrypoint.py db upgrade"
+                }
             }
         }
-        stage('Wait for Flask to Start') {
+        stage('Deployment') {
             steps {
+                // Activar el entorno virtual antes de ejecutar el servidor Flask
+                sh "env/bin/python entrypoint.py run"
                 script {
-                    def isFlaskRunning = false
-                    def maxAttempts = 30
-                    def attempt = 0
-                    def apiUrl = 'http://0.0.0.0:5000'  // La URL de tu API Flask
-
-                    // Esperar hasta que la API Flask esté en funcionamiento o hasta que se alcance el número máximo de intentos
-                    while (!isFlaskRunning && attempt < maxAttempts) {
-                        try {
-                            // Realizar una solicitud HTTP a la API Flask
-                            def response = httpRequest(url: apiUrl, validResponseCodes: '200', ignoreSslErrors: true)
-                            if (response.status == 200) {
-                                isFlaskRunning = true
-                            }
-                        } catch (Exception e) {
-                            // La solicitud falló, esperar unos segundos antes de intentar nuevamente
-                            sleep time: 10, unit: 'SECONDS'
-                            attempt++
-                        }
-                    }
-
-                    if (isFlaskRunning) {
-                        echo "La API Flask está en funcionamiento. Puedes acceder a ella en: $apiUrl"
-                    } else {
-                        error "La API Flask no se pudo iniciar después de $maxAttempts intentos."
+                    retry(20) {
+                        def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://localhost:5000", returnStatus: true)
+                        return response == 200
                     }
                 }
             }
+        }
+    }
+    post {
+        always {
+            sh "pkill -f 'python entrypoint.py run'"
         }
     }
 }
