@@ -27,4 +27,4 @@ CMD /bin/bash -c "source env/bin/activate && \
     flask db init && \
     flask db migrate -m 'Initial_DB' && \
     flask db upgrade && \
-    flask run --host=0.0.0.0"
+    flask run --host=0.0.0.0
