@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent none
     options {
         skipStagesAfterUnstable()
     }
@@ -7,41 +7,47 @@ pipeline {
         stage('Build') {
             agent {
                 docker {
-                    image 'python:3.7-bullseye'
+                    image 'python:3.11.5-alpine3.18'
                 }
             }
             steps {
-                script {
-                    // Instalar virtualenv localmente en el directorio del proyecto
-                    sh "python -m pip install --target . virtualenv"
-
-                    // Crear un entorno virtual en el directorio del proyecto
-                    sh "python -m virtualenv env"
-
-                    // Activar el entorno virtual y ejecutar comandos
-                    sh "env/bin/python -m pip install --target . -r requirements.txt"
-                    sh "env/bin/python entrypoint.py db init"
-                    sh "env/bin/python entrypoint.py db migrate -m 'Initial_DB'"
-                    sh "env/bin/python entrypoint.py db upgrade"
-                }
+                sh 'python -m py_compile sources/add2vals.py sources/calc.py'
+                stash(name: 'compiled-results', includes: 'sources/*.py*')
             }
         }
-        stage('Deployment') {
+        stage('Test') {
+            agent {
+                docker {
+                    image 'qnib/pytest'
+                }
+            }
             steps {
-                // Activar el entorno virtual antes de ejecutar el servidor Flask
-                sh "env/bin/python entrypoint.py run"
-                script {
-                    retry(20) {
-                        def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://localhost:5000", returnStatus: true)
-                        return response == 200
-                    }
+                sh 'py.test --junit-xml test-reports/results.xml sources/test_calc.py'
+            }
+            post {
+                always {
+                    junit 'test-reports/results.xml'
                 }
             }
         }
-    }
-    post {
-        always {
-            sh "pkill -f 'python entrypoint.py run'"
+        stage('Deliver') {
+            agent any
+            environment {
+                VOLUME = '$(pwd)/sources:/src'
+                IMAGE = 'cdrx/pyinstaller-linux:python2'
+            }
+            steps {
+                dir(path: env.BUILD_ID) {
+                    unstash(name: 'compiled-results')
+                    sh "docker run --rm -v ${VOLUME} ${IMAGE} 'pyinstaller -F add2vals.py'"
+                }
+            }
+            post {
+                success {
+                    archiveArtifacts "${env.BUILD_ID}/sources/dist/add2vals"
+                    sh "docker run --rm -v ${VOLUME} ${IMAGE} 'rm -rf build dist'"
+                }
+            }
         }
     }
 }
