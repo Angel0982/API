@@ -1,28 +1,47 @@
 pipeline {
     agent any
-    
+    options {
+        skipStagesAfterUnstable()
+    }
     stages {
-        stage('Configuración') {
+        stage('Build') {
+            agent {
+                docker {
+                    image 'python:3.7-bullseye'
+                }
+            }
             steps {
-                sh 'pip install virtualenv env'
-                sh 'virtualenv env'
-                sh 'echo "export FLASK_APP=\"entrypoint:app\"" >> env/bin/activate'
-                sh 'echo "export FLASK_ENV=\"development\"" >> env/bin/activate'
-                sh 'echo "export APP_SETTINGS_MODULE=\"config.default\"" >> env/bin/activate'
-                sh 'source env/bin/activate'
-                sh 'pip install flask sqlalchemy marshmallow flask_restful flask_sqlalchemy flask_migrate flask_marshmallow marshmallow_sqlalchemy'
-                sh 'pip freeze > requirements.txt'
+                script {
+                    // Instalar virtualenv localmente en el directorio del proyecto
+                    sh "python -m pip install --target . virtualenv"
+
+                    // Crear un entorno virtual en el directorio del proyecto
+                    sh "python -m virtualenv env"
+
+                    // Activar el entorno virtual y ejecutar comandos
+                    sh "env/bin/python -m pip install --target . -r requirements.txt"
+                    sh "env/bin/python entrypoint.py db init"
+                    sh "env/bin/python entrypoint.py db migrate -m 'Initial_DB'"
+                    sh "env/bin/python entrypoint.py db upgrade"
+                }
             }
         }
-        
-        stage('Inicialización y Ejecución') {
+        stage('Deployment') {
             steps {
-                sh 'source env/bin/activate'
-                sh 'flask db init'
-                sh 'flask db migrate -m "Initial_DB"'
-                sh 'flask db upgrade'
-                sh 'flask run'
+                // Activar el entorno virtual antes de ejecutar el servidor Flask
+                sh "env/bin/python entrypoint.py run"
+                script {
+                    retry(20) {
+                        def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://localhost:5000", returnStatus: true)
+                        return response == 200
+                    }
+                }
             }
+        }
+    }
+    post {
+        always {
+            sh "pkill -f 'python entrypoint.py run'"
         }
     }
 }
