@@ -12,7 +12,7 @@ pipeline {
                 }
                 // Realizar acciones de configuración en la imagen Docker
                 sh '''
-                    docker run --rm -d -p 192.168.3.164:5000:5000 -v $PWD:/app -w /app my-flask-app /bin/bash -c "
+                    docker run --rm -d -p 192.168.3.132:5000:5000 -v $PWD:/app -w /app my-flask-app /bin/bash -c "
                     source env/bin/activate &&
                     flask db init &&
                     flask db migrate -m 'Initial_DB' &&
