@@ -1,47 +1,46 @@
 pipeline {
-    agent none
-    options {
-        skipStagesAfterUnstable()
-    }
+    agent any
+
     stages {
-        stage('Build') {
-            agent {
-                docker {
-                    image 'python:3.7-bullseye'
-                }
-            }
+        stage('Build Docker Image') {
             steps {
                 script {
-                    // Instalar virtualenv localmente en el directorio del proyecto
-                    sh "python -m pip install --target . virtualenv"
-
-                    // Crear un entorno virtual en el directorio del proyecto
-                    sh "python -m virtualenv env"
-
-                    // Activar el entorno virtual y ejecutar comandos
-                    sh "env/bin/python -m pip install --target . -r requirements.txt"
-                    sh "env/bin/python entrypoint.py db init"
-                    sh "env/bin/python entrypoint.py db migrate -m 'Initial_DB'"
-                    sh "env/bin/python entrypoint.py db upgrade"
+                    // Construir la imagen Docker
+                    docker.build('mi_aplicacion_flask')
                 }
             }
         }
-        stage('Deployment') {
+        stage('Run Docker Container') {
             steps {
-                // Activar el entorno virtual antes de ejecutar el servidor Flask
-                sh "env/bin/python entrypoint.py run"
                 script {
-                    retry(20) {
-                        def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://localhost:5000", returnStatus: true)
-                        return response == 200
+                    // Ejecutar el contenedor Docker
+                    docker.image('mi_aplicacion_flask').run('-p 6001:6001', '--name mi_aplicacion_flask_container')
+                }
+            }
+        }
+        stage('Execute Commands in Docker Container') {
+            steps {
+                script {
+                    // Ejecutar comandos dentro del contenedor
+                    docker.image('mi_aplicacion_flask').inside('-i', '--tty') {
+                        sh 'source env/bin/activate'
+                        sh 'flask db init'
+                        sh 'flask db migrate -m "initial_DB"'
+                        sh 'flask db upgrade'
+                        sh 'flask run --host=0.0.0.0 --port=6001'
                     }
                 }
             }
         }
     }
+
     post {
         always {
-            sh "pkill -f 'python entrypoint.py run'"
+            // Detener y eliminar el contenedor después de finalizar
+            script {
+                docker.image('mi_aplicacion_flask').stop()
+                docker.image('mi_aplicacion_flask').remove(force: true)
+            }
         }
     }
 }
