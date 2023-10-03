@@ -12,8 +12,8 @@ pipeline {
         stage('Build and Run Docker Container') {
             steps {
                 script {
-                    // Ejecuta el contenedor Docker con la imagen ID 88786
-                    sh 'docker run -d 88786'
+                    // Ejecuta el contenedor Docker con la imagen ID 88786ce4e4f6
+                    sh 'docker run -d 88786ce4e4f6'
                 }
             }
         }
