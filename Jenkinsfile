@@ -14,21 +14,7 @@ pipeline {
             steps {
                 script {
                     // Ejecutar el contenedor Docker
-                    docker.image('mi_aplicacion_flask').run('-p 6001:6001', '--name mi_aplicacion_flask_container')
-                }
-            }
-        }
-        stage('Execute Commands in Docker Container') {
-            steps {
-                script {
-                    // Ejecutar comandos dentro del contenedor
-                    docker.image('mi_aplicacion_flask').inside('-i', '--tty') {
-                        sh 'source env/bin/activate'
-                        sh 'flask db init'
-                        sh 'flask db migrate -m "initial_DB"'
-                        sh 'flask db upgrade'
-                        sh 'flask run --host=0.0.0.0 --port=6001'
-                    }
+                    docker.image('mi_aplicacion_flask').run('-p 6001:6001', '--name mi_aplicacion_flask_container', 'bash', '-c', 'source env/bin/activate && flask db init && flask db migrate -m "initial_DB" && flask db upgrade && flask run --host=0.0.0.0 --port=6001')
                 }
             }
         }
