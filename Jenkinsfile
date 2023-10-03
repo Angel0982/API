@@ -1,20 +1,20 @@
 pipeline {
-    agent {
-        docker {
-            image '88786ce4e4f6'
-            args '-u root:root' // Opcional: Cambiar el usuario y grupo de Docker si es necesario
-        }
-    }
+    agent any
+
     stages {
-        stage('Build and Run') {
+        stage('Checkout') {
             steps {
-                sh '''
-                    source env/bin/activate
-                    flask db init
-                    flask db migrate -m "initial_DB"
-                    flask db upgrade
-                    flask run --host=0.0.0.0 --port=6001
-                '''
+                // Clona el repositorio de código fuente
+                checkout scm
+            }
+        }
+        
+        stage('Build and Run Docker Container') {
+            steps {
+                script {
+                    // Ejecuta el contenedor Docker con la imagen ID 88786
+                    sh 'docker run -d 88786'
+                }
             }
         }
     }
