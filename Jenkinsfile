@@ -1,19 +1,22 @@
 pipeline {
-    agent any
-
+    agent none
+    options {
+        skipStagesAfterUnstable()
+    }
     stages {
-        stage('Checkout') {
-            steps {
-                // Clona el repositorio de código fuente
-                checkout scm
+        stage('Build') {
+            agent {
+                docker {
+                    image '1206deni/apiric:1.2'
+                }
             }
-        }
-        
-        stage('Build and Run Docker Container') {
             steps {
                 script {
-                    // Ejecuta el contenedor Docker con la imagen ID 88786ce4e4f6
-                    sh 'docker run -d 88786ce4e4f6'
+                    // Agrega tus comandos de Flask aquí
+                    sh 'flask db init'
+                    sh 'flask db migrate -m "initial_DB"'
+                    sh 'flask db upgrade'
+                    sh 'flask run --host=0.0.0.0 --port=6001'
                 }
             }
         }
