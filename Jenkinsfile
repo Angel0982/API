@@ -7,7 +7,7 @@ pipeline {
         stage('Build') {
             agent {
                 docker {
-                    image '1206deni/apiric:1.2'
+                    image 'yair0911/shd:1.1'
                 }
             }
             steps {
